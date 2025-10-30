@@ -1,0 +1,251 @@
+go atlas
+#
+mesh width=0.15
+
+# Meshing in X-axis
+x.mesh loc=0.0 spac=0.00055
+x.mesh loc=0.010 spac=0.0001
+x.mesh loc=0.015 spac=0.0001
+x.mesh loc=0.020 spac=0.0001
+x.mesh loc=0.021 spac=0.00033
+x.mesh loc=0.030 spac=0.00065
+
+
+# Meshing in Y-axis
+y.mesh loc=0.00 spac=0.00065
+y.mesh loc=0.001 spac=0.0003
+y.mesh loc=0.002 spac=0.0001
+y.mesh loc=0.00265 spac=0.0001
+y.mesh loc=0.003 spac=0.0001
+y.mesh loc=0.00545 spac=0.00025
+y.mesh loc=0.006 spac=0.00035
+y.mesh loc=0.00745 spac=0.00065
+
+##Regions##
+Region number=1 material=vac
+#thickness=0.65nm and channel length=10nm
+Region number=2 x.min=0.00 x.max=0.030 y.min=0.002 y.max=0.00265 user.material=MoS2
+#thickness=2.8nm
+Region number=3  x.min=0 x.max=0.030 y.min=0.00265 y.max=0.00545  material=SiO2
+#thickness=2nm
+region number=4 material=Silicon x.min=0.0 x.max=0.030 y.min=0.00545 y.max=0.00745
+#thickness=1nm
+Region number=5 material=HfO2 x.min=0.0 x.max=0.030 y.min=0.001 y.max=0.002
+
+#electrode
+electrode name=source x.min=0.0 x.max=0.010 y.min=0.002 y.max=0.00265
+electrode name=drain x.min=0.020 x.max=0.030 y.min=0.002 y.max=0.00265
+electrode name=gate x.min=0.010 x.max=0.020 y.min=0.0 y.max=0.001
+electrode name=gate1 bottom
+
+contacts
+contact name=source workfunction=5.1
+contact name=drain workfunction=5.1
+contact name=gate workfunction=4.1
+contact name=gate1 workfunction=4.1 common=gate
+
+
+
+#material parameters
+material material=MoS2 EG300=1.8 MUN=320 mc=0.45 mv=0.544 NC300=1.0e18 NV300=1e16 affinity=4.28 permittivity=4.8 user.group=semiconductor user.default=Silicon
+##material material=hBN  EG300=5.0 MUN=200 MUP=500 NC300=2.1E19 NV300=2.6E19 affinity=1.1 permittivity=3.5 user.group=insulator user.default=SiO2
+
+
+
+material number=5 permittivity=25
+
+
+save outf=contact11_result.str
+tonyplot contact11_result.str
+
+
+#models
+models schrodinger p.schro negf_cms npred.negf=10 SP.geom=1DY sp.smooth  print
+
+
+
+interface S.I x.min=0.00 x.max=0.030 y.min=0.002 y.max=0.00545 qf=2.87e10
+
+
+##method
+method newton carriers=0
+
+#probe transmission filename="states_transversE"
+probe name=charge  x.min=0.00 x.max=0.030   n.conc integrate y.min=0.002 y.max=0.00265
+probe name=potential   integrate left=0.0 right=0.030 top=0.002 bottom=0.00265
+probe filename="dependent_states"
+
+SOLVE INIT
+solve prev
+solve vdrain=0.5
+log outf=contact11_result_analys.log
+#
+
+solve name=gate vgate=0.0 vstep=0.05 vfinal=0.5
+
+save outf=contact11_result_analys.str
+#SOLSTRFILE="contact11_result_analys.str"
+output con.band val.band flowlines e.velocity h.velocity e.field
+
+#
+extract name="vt" (xintercept(maxslope(curve(abs(v."gate"),abs(i."drain")))) \
+- abs(ave(v."drain"))/2.0)
+extract init inf="contact11_result_analys.log"
+
+extract name="subvt" \
+1.0/slope(maxslope(curve(abs(v."gate"),log10(abs(i."drain")))))
+extract name="leak" max(abs(i."drain"))
+extract name="idsmax" max(abs(i."drain"))
+extract name="idsmin" min(abs(i."drain"))
+extract name="Ioff" y.val from curve (v."gate",i."drain") where x.val=0
+
+
+tonyplot  contact11_result_analys.str
+tonyplot  contact11_result_analys.log
+
+quit
+
+
+EXTRACT> extract name="vt" (xintercept(maxslope(curve(abs(v."gate"),abs(i."drain")))) - abs(ave(v."drain"))/2.0)
+vt=0.0914129 V
+EXTRACT> quit
+
+EXTRACT> init inf="contact11_result_analys.log"
+
+ATLAS> 
+EXTRACT> extract name="subvt" 1.0/slope(maxslope(curve(abs(v."gate"),log10(abs(i."drain")))))
+subvt=0.0655994 V/decade
+EXTRACT> extract name="leak" max(abs(i."drain"))
+leak=0.000508689 A/um
+EXTRACT> extract name="idsmax" max(abs(i."drain"))
+idsmax=0.000508689 A/um
+EXTRACT> extract name="idsmin" min(abs(i."drain"))
+idsmin=2.49e-009 
+EXTRACT> extract name="Ioff" y.val from curve (v."gate",i."drain") where x.val=0
+Ioff=2.49e-009 
+EXTRACT> go atlas
+#
+mesh width=0.15
+
+# Meshing in X-axis
+x.mesh loc=0.0 spac=0.00055
+x.mesh loc=0.010 spac=0.0001
+x.mesh loc=0.015 spac=0.0001
+x.mesh loc=0.020 spac=0.0001
+x.mesh loc=0.021 spac=0.00033
+x.mesh loc=0.030 spac=0.00065
+
+
+# Meshing in Y-axis
+y.mesh loc=0.00 spac=0.00065
+y.mesh loc=0.001 spac=0.0003
+y.mesh loc=0.002 spac=0.0001
+y.mesh loc=0.00265 spac=0.0001
+y.mesh loc=0.003 spac=0.0001
+y.mesh loc=0.00545 spac=0.00025
+y.mesh loc=0.006 spac=0.00035
+y.mesh loc=0.00745 spac=0.00065
+
+##Regions##
+Region number=1 material=vac
+#thickness=0.65nm and channel length=10nm
+Region number=2 x.min=0.00 x.max=0.030 y.min=0.002 y.max=0.00265 user.material=MoS2
+#thickness=2.8nm
+Region number=3  x.min=0 x.max=0.030 y.min=0.00265 y.max=0.00545  material=SiO2
+#thickness=2nm
+region number=4 material=Silicon x.min=0.0 x.max=0.030 y.min=0.00545 y.max=0.00745
+#thickness=1nm
+Region number=5 material=HfO2 x.min=0.0 x.max=0.030 y.min=0.001 y.max=0.002
+
+#electrode
+electrode name=source x.min=0.0 x.max=0.010 y.min=0.002 y.max=0.00265
+electrode name=drain x.min=0.020 x.max=0.030 y.min=0.002 y.max=0.00265
+electrode name=gate x.min=0.010 x.max=0.020 y.min=0.0 y.max=0.001
+electrode name=gate1 bottom
+
+contacts
+contact name=source workfunction=5.1
+contact name=drain workfunction=5.1
+contact name=gate workfunction=4.1
+contact name=gate1 workfunction=4.1 common=gate
+
+
+
+#material parameters
+material material=MoS2 EG300=1.8 MUN=320 mc=0.45 mv=0.544 NC300=1.0e18 NV300=1e16 affinity=4.28 permittivity=4.8 user.group=semiconductor user.default=Silicon
+##material material=hBN  EG300=5.0 MUN=200 MUP=500 NC300=2.1E19 NV300=2.6E19 affinity=1.1 permittivity=3.5 user.group=insulator user.default=SiO2
+
+
+
+material number=5 permittivity=25
+
+
+save outf=contact11_result.str
+tonyplot contact11_result.str
+
+
+#models
+models schrodinger p.schro negf_cms npred.negf=10 SP.geom=1DY sp.smooth  print
+
+
+
+interface S.I x.min=0.00 x.max=0.030 y.min=0.002 y.max=0.00545 qf=2.87e10
+
+
+##method
+method newton carriers=0
+
+#probe transmission filename="states_transversE"
+probe name=charge  x.min=0.00 x.max=0.030   n.conc integrate y.min=0.002 y.max=0.00265
+probe name=potential   integrate left=0.0 right=0.030 top=0.002 bottom=0.00265
+probe filename="dependent_states"
+
+SOLVE INIT
+solve prev
+solve vdrain=0.5
+log outf=contact11_result_analys.log
+#
+
+solve name=gate vgate=0.0 vstep=0.05 vfinal=0.5
+
+save outf=contact11_result_analys.str
+#SOLSTRFILE="contact11_result_analys.str"
+output con.band val.band flowlines e.velocity h.velocity e.field
+
+#
+extract name="vt" (xintercept(maxslope(curve(abs(v."gate"),abs(i."drain")))) \
+- abs(ave(v."drain"))/2.0)
+extract init inf="contact11_result_analys.log"
+
+extract name="subvt" \
+1.0/slope(maxslope(curve(abs(v."gate"),log10(abs(i."drain")))))
+extract name="leak" max(abs(i."drain"))
+extract name="idsmax" max(abs(i."drain"))
+extract name="idsmin" min(abs(i."drain"))
+extract name="Ioff" y.val from curve (v."gate",i."drain") where x.val=0
+
+
+tonyplot  contact11_result_analys.str
+tonyplot  contact11_result_analys.log
+
+quit
+
+
+EXTRACT> extract name="vt" (xintercept(maxslope(curve(abs(v."gate"),abs(i."drain")))) - abs(ave(v."drain"))/2.0)
+vt=0.0914129 V
+EXTRACT> quit
+
+EXTRACT> init inf="contact11_result_analys.log"
+
+ATLAS> 
+EXTRACT> extract name="subvt" 1.0/slope(maxslope(curve(abs(v."gate"),log10(abs(i."drain")))))
+subvt=0.0655994 V/decade
+EXTRACT> extract name="leak" max(abs(i."drain"))
+leak=0.000508689 A/um
+EXTRACT> extract name="idsmax" max(abs(i."drain"))
+idsmax=0.000508689 A/um
+EXTRACT> extract name="idsmin" min(abs(i."drain"))
+idsmin=2.49e-009 
+EXTRACT> extract name="Ioff" y.val from curve (v."gate",i."drain") where x.val=0
+Ioff=2.49e-009 
+EXTRACT> 
